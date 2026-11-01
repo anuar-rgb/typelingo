@@ -1,0 +1,10 @@
+# Копии файлов из site/ (деплоится только site/, см. Dockerfile)
+/app.js
+/index.html
+/style.css
+/books.js
+/phrases.js
+/vocab.js
+# референсы
+рука/
+.playwright-cli/

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TypeLingo — учим английский на клавиатуре</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen text-slate-800 antialiased">
+  <div id="flash" class="fixed inset-0 pointer-events-none opacity-0 z-50"></div>
+
+  <div class="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+    <header class="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
+      <div class="flex items-center gap-3">
+        <div class="logo">⌨️</div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold leading-none">Type<span class="text-lime-500">Lingo</span></h1>
+          <p class="text-xs sm:text-sm text-slate-500">Печатай и учи английский</p>
+        </div>
+      </div>
+      <nav class="main-nav" aria-label="Разделы">
+        <button id="navGame" class="nav-btn">🎮 <span>Игра</span></button>
+        <button id="navBooks" class="nav-btn">📚 <span>Книги</span></button>
+        <button id="navVocab" class="nav-btn">📖 <span>Словарь</span></button>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="btnSound" class="chip" title="Звук">🔊</button>
+        <div class="chip">🏆 <span id="bestScore">0</span></div>
+      </div>
+    </header>
+
+    <!-- МЕНЮ -->
+    <section id="screenMenu">
+      <div class="card p-5 sm:p-8 text-center">
+        <h2 class="text-2xl sm:text-4xl font-extrabold mb-2">Допиши фразу раньше, чем время выйдет!</h2>
+        <p class="text-slate-500 mb-6 sm:mb-8">Набирай полезные английские фразы, смотри на подсказки пальцев и запоминай перевод.</p>
+        <div class="grid sm:grid-cols-3 gap-3 sm:gap-4 text-left">
+          <button class="level lvl-easy" data-level="easy">
+            <span class="text-3xl">🌱</span>
+            <b class="text-lg">Лёгкий</b>
+            <span class="text-sm opacity-90">Короткие слова и фразы. Подсказки пальцев и клавиш. Без времени, ошибки не сбрасывают прогресс.</span>
+          </button>
+          <button class="level lvl-medium" data-level="medium">
+            <span class="text-3xl">🔥</span>
+            <b class="text-lg">Средний</b>
+            <span class="text-sm opacity-90">Полные фразы. Подсветка только нужной клавиши, без рук. Лёгкий лимит времени на фразу.</span>
+          </button>
+          <button class="level lvl-hard" data-level="hard">
+            <span class="text-3xl">⚡</span>
+            <b class="text-lg">Сложный</b>
+            <span class="text-sm opacity-90">Длинные предложения, быстрый темп, без подсказок. Ошибка — фраза заново и штраф.</span>
+          </button>
+        </div>
+        <button id="btnBooks" class="books-entry mt-4">
+          <span class="be-icon">📚</span>
+          <span class="text-left">
+            <b class="block text-lg">Чтение книг</b>
+            <span class="text-sm text-slate-500">Печатай сказки и классику по главам — текст плавно прокручивается за тобой.</span>
+          </span>
+          <span class="be-arrow">→</span>
+        </button>
+        <button id="btnVocab" class="books-entry vocab-entry mt-3">
+          <span class="be-icon">📖</span>
+          <span class="text-left">
+            <b class="block text-lg">Словарь: 1000 слов</b>
+            <span class="text-sm text-slate-500">Видишь перевод — печатаешь английское слово. Самые частые слова языка.</span>
+          </span>
+          <span class="be-arrow">→</span>
+        </button>
+        <p class="text-xs text-slate-400 mt-6">Раунд = 8 фраз. Печатай на физической клавиатуре (на телефоне нажми на карточку с фразой).</p>
+      </div>
+    </section>
+
+    <!-- КНИГИ -->
+    <section id="screenBooks" class="hidden">
+      <div class="flex flex-wrap items-center gap-2 mb-4">
+        <button id="btnBooksBack" class="chip">← Меню</button>
+        <h2 class="text-xl sm:text-2xl font-extrabold ml-1">Выбери книгу и главу</h2>
+      </div>
+      <div id="bookGrid" class="book-grid"></div>
+      <div id="chapterPanel" class="card p-4 sm:p-6 mt-4"></div>
+    </section>
+
+    <!-- ЧИТАЛКА -->
+    <section id="screenReader" class="hidden">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <button id="btnReaderBack" class="chip">← Главы</button>
+        <div class="chip" id="rdTitle"></div>
+        <div class="chip">Скорость: <b id="rdWpm">0</b> зн/мин</div>
+        <div class="chip">Точность: <b id="rdAcc">100</b>%</div>
+        <label class="chip voice-toggle"><input type="checkbox" id="rdHints" checked> Руки</label>
+        <label class="chip voice-toggle" title="Читать абзац перед набором и следующее слово после пробела"><input type="checkbox" id="rdVoice" checked> Озвучка</label>
+      </div>
+      <div class="h-3 rounded-full bg-white/70 overflow-hidden mb-3 shadow-inner">
+        <div id="rdBar" class="h-full rounded-full bg-lime-400" style="width:0%"></div>
+      </div>
+      <div class="card reader-card">
+        <div class="reader-top">
+          <span id="rdChapter" class="reader-chapter"></span>
+          <button id="rdSpeak" class="speak-btn speak-sm" type="button" aria-label="Прослушать текущее предложение" title="Прослушать предложение (Tab)">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="spk" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/>
+              <path class="wave w1" d="M15 9.2a4 4 0 0 1 0 5.6"/>
+              <path class="wave w2" d="M17.6 6.8a7.4 7.4 0 0 1 0 10.4"/>
+            </svg>
+          </button>
+        </div>
+        <div id="readerView" class="reader-view">
+          <div id="readerText" class="reader-text"></div>
+        </div>
+      </div>
+      <div id="readerKbSlot"></div>
+
+      <div id="rdDone" class="rd-done hidden">
+        <div class="card p-6 sm:p-8 text-center rd-done-card">
+          <div class="text-5xl mb-2">📖</div>
+          <h3 class="text-2xl font-extrabold mb-1">Глава прочитана!</h3>
+          <p id="rdDoneSub" class="text-slate-500 mb-5"></p>
+          <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="stat"><b id="rdDoneWpm">0</b><span>зн/мин</span></div>
+            <div class="stat"><b id="rdDoneAcc">0%</b><span>точность</span></div>
+            <div class="stat"><b id="rdDoneWords">0</b><span>слов</span></div>
+          </div>
+          <div class="flex flex-wrap justify-center gap-3">
+            <button id="rdNext" class="btn-primary">Следующая глава →</button>
+            <button id="rdToBooks" class="btn-secondary">К главам</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛОВАРЬ -->
+    <section id="screenVocab" class="hidden">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <button id="vcBack" class="chip">← Меню</button>
+        <div class="chip" title="Слова, набранные в режиме обучения">Обучение: <b id="vcPracticed">0</b></div>
+        <div class="chip" title="Слова, верно написанные по памяти без подсказки">Изучено: <b id="vcLearned">0</b>/<span id="vcTotal">1000</span></div>
+        <div class="chip">Всего ответов: ✔ <b id="vcRight">0</b> · ✘ <b id="vcWrong">0</b></div>
+        <div class="vc-tabs" role="tablist">
+          <button class="vc-tab active" data-tab="train" role="tab">Тренировка</button>
+          <button class="vc-tab" data-tab="list" role="tab">Список слов</button>
+        </div>
+      </div>
+      <div class="h-3 rounded-full bg-white/70 overflow-hidden mb-3 shadow-inner">
+        <div id="vcBar" class="h-full rounded-full bg-lime-400" style="width:0%"></div>
+      </div>
+      <div class="card p-3 sm:p-4 mb-4">
+        <div class="vc-levels" role="radiogroup" aria-label="Уровень">
+          <button class="vc-level" data-level="1" role="radio">
+            <span class="vc-level-ic">👀</span>
+            <span><b>Уровень 1 · Обучение</b><small>Видишь слово, слушаешь и печатаешь его по буквам</small></span>
+          </button>
+          <button class="vc-level" data-level="2" role="radio">
+            <span class="vc-level-ic">🧠</span>
+            <span><b>Уровень 2 · Проверка по памяти</b><small>Видишь перевод, вспоминаешь и пишешь слово сам</small></span>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <span class="vc-label">Блоки по частоте (выучено в блоке)</span>
+          <div id="vcModes" class="vc-modes">
+            <label><input type="radio" name="vcMode" value="ru" checked> Перевод → слово</label>
+            <label><input type="radio" name="vcMode" value="ipa"> Транскрипция → слово</label>
+          </div>
+        </div>
+        <div id="vcBlocks" class="vc-blocks"></div>
+      </div>
+
+      <div id="vcTrain">
+        <div id="vcCard" class="card vc-card">
+          <div class="vc-top"><span id="vcCounter"></span><span id="vcSession"></span></div>
+          <div id="vcPrompt" class="vc-prompt"></div>
+          <div id="vcSub" class="vc-sub"></div>
+          <div id="vcSlots" class="vc-slots"></div>
+          <div id="vcFeedback" class="vc-feedback" aria-live="polite"></div>
+          <div class="vc-actions">
+            <button id="vcHint" class="chip" type="button">💡 Подсказка</button>
+            <button id="vcPrev" class="chip vc-prev" type="button" title="Предыдущее слово (←)">← Назад</button>
+            <button id="vcSkip" class="chip" type="button" title="Esc">Не знаю</button>
+            <button id="vcSpeak" class="speak-btn speak-sm" type="button" aria-label="Произнести слово" title="Произнести (Tab)">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="spk" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/>
+              <path class="wave w1" d="M15 9.2a4 4 0 0 1 0 5.6"/>
+              <path class="wave w2" d="M17.6 6.8a7.4 7.4 0 0 1 0 10.4"/>
+            </svg>
+            </button>
+            <button id="vcCheck" class="btn-primary" type="button">Проверить ⏎</button>
+          </div>
+        </div>
+        <div id="vcKbSlot"></div>
+      </div>
+
+      <div id="vcList" class="card p-3 sm:p-5 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 id="vcListTitle" class="font-extrabold text-lg"></h3>
+          <input id="vcSearch" class="vc-search" type="search" placeholder="Поиск: слово или перевод" autocomplete="off">
+        </div>
+        <div id="vcTable" class="vc-table"></div>
+      </div>
+
+      <div id="vcDone" class="rd-done hidden">
+        <div class="card p-6 sm:p-8 text-center rd-done-card">
+          <div class="text-5xl mb-2">🎯</div>
+          <h3 class="text-2xl font-extrabold mb-4">Тренировка завершена</h3>
+          <div class="grid grid-cols-3 gap-3 mb-5">
+            <div class="stat"><b id="vcDoneRight">0</b><span>верно</span></div>
+            <div class="stat"><b id="vcDoneWrong">0</b><span>ошибок</span></div>
+            <div class="stat"><b id="vcDoneAcc">0%</b><span>точность</span></div>
+          </div>
+          <div class="text-left mb-5">
+            <h4 class="font-bold mb-2">Повтори эти слова</h4>
+            <ul id="vcDoneList" class="vc-done-list"></ul>
+          </div>
+          <div class="flex flex-wrap justify-center gap-3">
+            <button id="vcAgain" class="btn-primary">Ещё 10 слов</button>
+            <button id="vcToList" class="btn-secondary">Список слов</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ИГРА -->
+    <section id="screenGame" class="hidden">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <button id="btnQuit" class="chip">← Меню</button>
+        <div class="chip" id="lvlBadge">Лёгкий</div>
+        <div class="chip">Очки: <b id="score">0</b></div>
+        <div class="chip">Комбо: <b id="combo">0</b> 🔥</div>
+        <div class="chip">Фраза: <b id="phraseNum">1</b>/<span id="phraseTotal">8</span></div>
+      </div>
+
+      <div class="h-3 rounded-full bg-white/70 overflow-hidden mb-3 shadow-inner">
+        <div id="timerBar" class="h-full rounded-full bg-lime-400 transition-none" style="width:100%"></div>
+      </div>
+
+      <div id="phraseCard" class="card p-5 sm:p-8 text-center cursor-text">
+        <div class="flex justify-end -mt-1 mb-2">
+          <label class="voice-toggle" title="Произносить каждую новую фразу автоматически">
+            <input type="checkbox" id="autoVoice" checked> Автоозвучка
+          </label>
+        </div>
+        <div class="phrase-row">
+          <div id="phrase" class="phrase" aria-live="polite"></div>
+          <button id="btnSpeak" class="speak-btn" type="button" aria-label="Прослушать фразу" title="Прослушать ещё раз (Tab)">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="spk" d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/>
+              <path class="wave w1" d="M15 9.2a4 4 0 0 1 0 5.6"/>
+              <path class="wave w2" d="M17.6 6.8a7.4 7.4 0 0 1 0 10.4"/>
+            </svg>
+          </button>
+        </div>
+        <div id="translation" class="text-lg sm:text-xl text-slate-500 mt-3"></div>
+        <input id="mobileInput" class="absolute opacity-0 w-0 h-0" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+
+      <div id="analysis" class="analysis mt-4">
+        <div class="an-head">
+          <span>Разбор предложения</span>
+          <button id="btnAnalysis" class="an-toggle" type="button">Скрыть</button>
+        </div>
+        <div id="analysisBody" class="an-body"></div>
+        <div class="an-legend">Сверху — член предложения, над словом — транскрипция, под ним — часть речи. Наведи на слово, чтобы увидеть его в фразе.</div>
+      </div>
+
+      <div id="kbWrap" class="card p-3 sm:p-5 mt-4">
+        <div id="keyboard" class="keyboard"></div>
+      </div>
+    </section>
+
+    <!-- РЕЗУЛЬТАТЫ -->
+    <section id="screenResult" class="hidden">
+      <div class="card p-6 sm:p-10 text-center">
+        <div class="text-6xl mb-2" id="resEmoji">🎉</div>
+        <h2 class="text-3xl font-extrabold mb-1" id="resTitle">Отлично!</h2>
+        <p class="text-slate-500 mb-6" id="resSub"></p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div class="stat"><b id="resScore">0</b><span>очков</span></div>
+          <div class="stat"><b id="resWpm">0</b><span>зн/мин</span></div>
+          <div class="stat"><b id="resAcc">0%</b><span>точность</span></div>
+          <div class="stat"><b id="resCombo">0</b><span>макс. комбо</span></div>
+        </div>
+        <div class="text-left mb-6">
+          <h3 class="font-bold mb-2">Выученные фразы</h3>
+          <ul id="resList" class="space-y-1 text-sm"></ul>
+        </div>
+        <div class="flex flex-wrap justify-center gap-3">
+          <button id="btnAgain" class="btn-primary">Играть ещё</button>
+          <button id="btnMenu" class="btn-secondary">В меню</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="phrases.js"></script>
+  <script src="books.js"></script>
+  <script src="vocab.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
